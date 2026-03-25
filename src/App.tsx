@@ -24,7 +24,13 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { AnalysisResult, AnalysisSchema, Verdict, RiskLevel } from './types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getAI = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+    throw new Error("Gemini API Key is missing. Please configure MY_GEMINI_KEY in your environment variables.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export default function App() {
   const [articleText, setArticleText] = useState('');
@@ -40,6 +46,7 @@ export default function App() {
     setError(null);
 
     try {
+      const ai = getAI();
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Act as a professional fact-checking AI used in a newsroom. Analyze the following news article for credibility and authenticity.
@@ -141,29 +148,37 @@ export default function App() {
               placeholder="Paste the news article text here for analysis..."
               className="w-full h-[400px] p-6 text-slate-700 leading-relaxed focus:outline-none resize-none placeholder:text-slate-300"
             />
-            <div className="p-4 border-t border-slate-100 flex justify-end">
-              <button
-                onClick={analyzeArticle}
-                disabled={isAnalyzing || !articleText.trim()}
-                className={`
-                  flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all
-                  ${isAnalyzing || !articleText.trim() 
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 active:scale-95'}
-                `}
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    Run Fact-Check
-                  </>
-                )}
-              </button>
+            <div className="p-4 border-t border-slate-100 flex flex-col gap-3">
+              {error && (
+                <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-xs font-medium">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  {error}
+                </div>
+              )}
+              <div className="flex justify-end">
+                <button
+                  onClick={analyzeArticle}
+                  disabled={isAnalyzing || !articleText.trim()}
+                  className={`
+                    flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all
+                    ${isAnalyzing || !articleText.trim() 
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 active:scale-95'}
+                  `}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      Run Fact-Check
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </section>
 
