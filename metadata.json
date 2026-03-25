@@ -1,0 +1,5 @@
+{
+  "name": "CopyChecker: Fake News Detector",
+  "description": "A professional-grade fact-checking tool that analyzes news articles for credibility, tone, and authenticity using advanced AI.",
+  "requestFramePermissions": []
+}
